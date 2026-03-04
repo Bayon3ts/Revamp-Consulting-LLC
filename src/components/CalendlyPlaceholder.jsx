@@ -2,19 +2,17 @@ import { motion } from 'framer-motion';
 import { Calendar, ArrowRight } from 'lucide-react';
 import trackEvent from '../utils/trackEvent';
 
-// ── Calendly Configuration ────────────────────────────────────────────────────
-// Replace the placeholder below with your live Calendly URL when ready.
-// e.g. "https://calendly.com/revamp-consulting/30min"
-//
-// To add an inline embed widget instead:
-//   1. Install the Calendly embed lib:  npm install react-calendly
-//   2. Import: import { InlineWidget } from 'react-calendly';
-//   3. Replace the <a> button with: <InlineWidget url={CALENDLY_URL} />
-const CALENDLY_URL = '#'; // ← paste your Calendly link here
+const CALENDLY_URL = 'https://calendly.com/admin-revampinsights';
 
 export default function CalendlyPlaceholder() {
-    const handleClick = () => {
+    const handleClick = (e) => {
+        e.preventDefault();
         trackEvent('booking_click', { destination: CALENDLY_URL });
+        if (window.Calendly) {
+            window.Calendly.initPopupWidget({ url: CALENDLY_URL });
+        } else {
+            window.open(CALENDLY_URL, '_blank');
+        }
     };
 
     return (
@@ -25,7 +23,7 @@ export default function CalendlyPlaceholder() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="mb-10 p-7 rounded-sm bg-white/5 border border-[#C8A96E]/25 relative overflow-hidden"
         >
-            {/* Subtle gold glow */}
+            {/* Gold glow */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{ background: 'radial-gradient(ellipse at 0% 50%, rgba(200,169,110,0.08) 0%, transparent 65%)' }}
@@ -54,10 +52,7 @@ export default function CalendlyPlaceholder() {
                 </div>
 
                 {/* CTA */}
-                <motion.a
-                    href={CALENDLY_URL}
-                    target={CALENDLY_URL !== '#' ? '_blank' : undefined}
-                    rel="noopener noreferrer"
+                <motion.button
                     onClick={handleClick}
                     whileHover={{ scale: 1.03, y: -1 }}
                     whileTap={{ scale: 0.97 }}
@@ -71,7 +66,7 @@ export default function CalendlyPlaceholder() {
                 >
                     Book a Consultation
                     <ArrowRight size={14} />
-                </motion.a>
+                </motion.button>
             </div>
         </motion.div>
     );

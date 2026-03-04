@@ -1,50 +1,52 @@
 /**
  * submitLeadForm — Revamp Consulting LLC
  *
- * Handles lead form submission. Reads the endpoint from an environment variable
- * so no sensitive keys are ever committed to the repository.
+ * Sends lead form data to adekunle.olusanya@yahoo.com via EmailJS.
  *
- * ── How to connect ────────────────────────────────────────────────────────────
+ * ── Setup ─────────────────────────────────────────────────────────────────────
+ * 1. Create a free account at https://www.emailjs.com
+ * 2. Add your Yahoo email as a service
+ * 3. Create an email template using the variables listed below
+ * 4. Add these to your .env.local file:
  *
- * 1. Copy .env.example → .env.local  (git-ignored)
- * 2. Set VITE_LEAD_FORM_ENDPOINT to one of:
- *      • Airtable automation webhook URL
- *          e.g. https://hooks.airtable.com/workflows/v1/...
- *      • Make (Integromat) webhook URL
- *          e.g. https://hook.eu1.make.com/...
- *      • Zapier webhook URL
- *          e.g. https://hooks.zapier.com/hooks/catch/...
- *      • Your own backend API route
- *          e.g. https://api.revampconsulting.ng/leads
+ *    VITE_EMAILJS_SERVICE_ID=service_xxxxxxx
+ *    VITE_EMAILJS_TEMPLATE_ID=template_xxxxxxx
+ *    VITE_EMAILJS_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxx
  *
- * ── CRM Lead Stages (use in Airtable / Make / Zapier field mapping) ────────────
- *
- *   New Lead → Contacted → Consultation Booked → Proposal Sent →
- *   Negotiation → Won → Lost
- *
- * ── Payload Shape ─────────────────────────────────────────────────────────────
- *
- *  {
- *    fullName:            string   (required)
- *    companyName:         string   (optional)
- *    email:               string   (required)
- *    phone:               string   (optional)
- *    serviceInterestedIn: string   (required — see SERVICES list below)
- *    businessChallenge:   string   (required)
- *    source:              "revamp-landing-page"
- *    submittedAt:         ISO 8601 timestamp
- *    pageUrl:             current window URL
- *    _hp:                 string   (honeypot — server should discard if non-empty)
- *  }
+ * ── Template Variables (use these in your EmailJS template) ───────────────────
+ *    {{fullName}}            — sender's full name
+ *    {{companyName}}         — organization name
+ *    {{email}}               — reply-to email
+ *    {{phone}}               — phone number
+ *    {{serviceInterestedIn}} — selected service
+ *    {{businessChallenge}}   — their message / challenge
+ *    {{submittedAt}}         — submission timestamp
+ *    {{pageUrl}}             — page they submitted from
  *
  * ── Anti-Spam ─────────────────────────────────────────────────────────────────
- *
- *  A hidden honeypot field (_hp) is included.
- *  At your webhook/backend, discard any submission where _hp is non-empty.
- *  Before production launch, add Cloudflare Turnstile or equivalent.
+ *    Honeypot field (_hp) — discard any submission where _hp is non-empty.
  */
 
-const ENDPOINT = import.meta.env.VITE_LEAD_FORM_ENDPOINT;
+const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+// Optional: Zapier / Make / Airtable webhook as an alternative
+const WEBHOOK_ENDPOINT = import.meta.env.VITE_LEAD_FORM_ENDPOINT;
+
+/**
+ * Loads the EmailJS SDK dynamically (no npm install needed).
+ */
+function loadEmailJS() {
+    return new Promise((resolve, reject) => {
+        if (window.emailjs) { resolve(); return; }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load EmailJS SDK'));
+        document.head.appendChild(script);
+    });
+}
 
 /**
  * @typedef {object} LeadPayload
@@ -54,56 +56,79 @@ const ENDPOINT = import.meta.env.VITE_LEAD_FORM_ENDPOINT;
  * @property {string} [phone]
  * @property {string} serviceInterestedIn
  * @property {string} businessChallenge
- * @property {string} [_hp]             — honeypot
+ * @property {string} [_hp]
  */
 
 /**
- * Submits a lead form payload to the configured endpoint.
+ * Submits a lead form to EmailJS (primary) or a webhook (fallback).
  *
  * @param {LeadPayload} formData
  * @returns {Promise<{ ok: boolean, data?: any, error?: string }>}
  */
 export async function submitLeadForm(formData) {
+    // ── Honeypot check ─────────────────────────────────────────────────────────
+    if (formData._hp) {
+        // Silently reject bots — pretend success
+        return { ok: true, data: { bot: true } };
+    }
+
     const payload = {
-        fullName: formData.fullName,
-        companyName: formData.companyName || '',
-        email: formData.email,
-        phone: formData.phone || '',
+        fullName:            formData.fullName,
+        companyName:         formData.companyName || '—',
+        email:               formData.email,
+        phone:               formData.phone || '—',
         serviceInterestedIn: formData.serviceInterestedIn,
-        businessChallenge: formData.businessChallenge,
-        source: 'revamp-landing-page',
-        submittedAt: new Date().toISOString(),
-        pageUrl: window.location.href,
-        _hp: formData._hp || '',
+        businessChallenge:   formData.businessChallenge,
+        submittedAt:         new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) + ' WAT',
+        pageUrl:             window.location.href,
     };
 
-    // ── Dev mode: no endpoint configured ──────────────────────────────────────
-    if (!ENDPOINT) {
-        // eslint-disable-next-line no-console
-        console.log('[Revamp Lead Capture] No endpoint configured (VITE_LEAD_FORM_ENDPOINT is empty).');
-        // eslint-disable-next-line no-console
-        console.log('[Revamp Lead Capture] Payload that would be sent:', payload);
-        // Simulate success in dev so the rest of the flow can be tested
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        return { ok: true, data: { simulated: true } };
-    }
+    // ── Path A: EmailJS ────────────────────────────────────────────────────────
+    if (SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY) {
+        try {
+            await loadEmailJS();
+            window.emailjs.init({ publicKey: PUBLIC_KEY });
 
-    // ── Production: POST to configured endpoint ────────────────────────────────
-    try {
-        const response = await fetch(ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+            const response = await window.emailjs.send(SERVICE_ID, TEMPLATE_ID, payload);
 
-        if (!response.ok) {
-            const text = await response.text().catch(() => '');
-            return { ok: false, error: `Server responded with ${response.status}: ${text}` };
+            if (response.status === 200) {
+                return { ok: true, data: response };
+            } else {
+                return { ok: false, error: `EmailJS error: ${response.text}` };
+            }
+        } catch (err) {
+            console.error('[Revamp Lead Capture] EmailJS failed:', err);
+            // Fall through to webhook if available
+            if (!WEBHOOK_ENDPOINT) {
+                return { ok: false, error: err.message || 'Failed to send email.' };
+            }
         }
-
-        const data = await response.json().catch(() => ({}));
-        return { ok: true, data };
-    } catch (err) {
-        return { ok: false, error: err.message || 'Network error' };
     }
+
+    // ── Path B: Webhook (Zapier / Make / Airtable) ─────────────────────────────
+    if (WEBHOOK_ENDPOINT) {
+        try {
+            const response = await fetch(WEBHOOK_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                return { ok: false, error: `Webhook error ${response.status}: ${text}` };
+            }
+
+            const data = await response.json().catch(() => ({}));
+            return { ok: true, data };
+        } catch (err) {
+            return { ok: false, error: err.message || 'Network error' };
+        }
+    }
+
+    // ── Dev mode: no credentials configured ───────────────────────────────────
+    console.log('[Revamp Lead Capture] No EmailJS or webhook configured.');
+    console.log('[Revamp Lead Capture] Payload:', payload);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    return { ok: true, data: { simulated: true } };
 }

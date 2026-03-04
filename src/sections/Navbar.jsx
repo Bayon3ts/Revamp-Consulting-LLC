@@ -23,6 +23,38 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Load Calendly assets once on mount
+    useEffect(() => {
+        if (document.getElementById('calendly-script')) return;
+
+        const link = document.createElement('link');
+        link.id = 'calendly-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://assets.calendly.com/assets/external/widget.css';
+        document.head.appendChild(link);
+
+        const script = document.createElement('script');
+        script.id = 'calendly-script';
+        script.src = 'https://assets.calendly.com/assets/external/widget.js';
+        script.async = true;
+        document.head.appendChild(script);
+    }, []);
+
+    const openCalendly = (e) => {
+        if (e) e.preventDefault();
+        trackEvent('navbar_cta_click');
+        if (window.Calendly) {
+            window.Calendly.initPopupWidget({ url: 'https://calendly.com/admin-revampinsights' });
+        } else {
+            // Script still loading — wait briefly and retry
+            setTimeout(() => {
+                if (window.Calendly) {
+                    window.Calendly.initPopupWidget({ url: 'https://calendly.com/admin-revampinsights' });
+                }
+            }, 1000);
+        }
+    };
+
     const handleNavClick = (href) => {
         setMobileOpen(false);
         const el = document.querySelector(href);
@@ -90,7 +122,7 @@ export default function Navbar() {
                             <Button
                                 variant="primary"
                                 size="sm"
-                                onClick={() => { trackEvent('navbar_cta_click'); handleNavClick('#consultation'); }}
+                                onClick={openCalendly}
                             >
                                 Book a Consultation
                             </Button>
@@ -145,7 +177,7 @@ export default function Navbar() {
                                 <Button
                                     variant="primary"
                                     size="lg"
-                                    onClick={() => { trackEvent('navbar_cta_click'); handleNavClick('#consultation'); }}
+                                    onClick={openCalendly}
                                     className="w-full justify-center"
                                 >
                                     Book a Consultation
