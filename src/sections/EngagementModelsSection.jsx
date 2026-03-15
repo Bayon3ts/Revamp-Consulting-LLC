@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Handshake, FileCheck, Users, PresentationIcon } from 'lucide-react';
 import { AnimatedSection, itemVariants, SectionLabel, SectionTitle } from '../components/SectionWrapper';
+import Button from '../components/Button';
+import trackEvent from '../utils/trackEvent';
 
 const iconMap = {
     Handshake: Handshake,
@@ -93,6 +95,30 @@ export default function EngagementModelsSection() {
                         );
                     })}
                 </AnimatedSection>
+
+                {/* CTA — single, centered, appears after all cards */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="mt-14 flex justify-center"
+                >
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={() => {
+                            trackEvent('engagement_cta_click');
+                            const el = document.querySelector('#consultation');
+                            if (el) {
+                                const top = el.getBoundingClientRect().top + window.pageYOffset - 80;
+                                window.scrollTo({ top, behavior: 'smooth' });
+                            }
+                        }}
+                    >
+                        Book a Consultation
+                    </Button>
+                </motion.div>
             </div>
         </section>
     );

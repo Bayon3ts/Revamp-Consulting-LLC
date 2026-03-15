@@ -5,6 +5,7 @@ import ProblemSection from './sections/ProblemSection';
 import ServicesSection from './sections/ServicesSection';
 import ImpactSection from './sections/ImpactSection';
 import LeadershipSection from './sections/LeadershipSection';
+import ContentEngineBlock from './components/ContentEngineBlock';
 import EngagementModelsSection from './sections/EngagementModelsSection';
 import ConsultationSection from './sections/ConsultationSection';
 import Footer from './sections/Footer';
@@ -19,6 +20,7 @@ export default function App() {
         <ServicesSection />
         <ImpactSection />
         <LeadershipSection />
+        <ContentEngineBlock />
         <EngagementModelsSection />
         <ConsultationSection />
       </main>

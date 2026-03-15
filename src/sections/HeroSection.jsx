@@ -2,16 +2,17 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 import Button from '../components/Button';
+import trackEvent from '../utils/trackEvent';
 
 // ─── Word config for headline ─────────────────────────────────────────────────
 
 const HEADLINE_WORDS = [
-    { text: 'Strategic',   gold: false },
-    { text: 'Clarity.',    gold: false },
-    { text: 'Operational', gold: true  },
+    { text: 'Strategic', gold: false },
+    { text: 'Clarity.', gold: false },
+    { text: 'Operational', gold: true },
     { text: 'Excellence.', gold: false },
     { text: 'Sustainable', gold: false },
-    { text: 'Growth.',     gold: false },
+    { text: 'Growth.', gold: false },
 ];
 
 // ─── Floating Particles ───────────────────────────────────────────────────────
@@ -20,12 +21,12 @@ function Particles({ count = 24 }) {
     const particles = useRef(
         Array.from({ length: count }, (_, i) => ({
             id: i,
-            x:        Math.random() * 100,
-            startY:   60 + Math.random() * 40,
-            size:     0.8 + Math.random() * 2,
+            x: Math.random() * 100,
+            startY: 60 + Math.random() * 40,
+            size: 0.8 + Math.random() * 2,
             duration: 7 + Math.random() * 10,
-            delay:    Math.random() * 9,
-            drift:    (Math.random() - 0.5) * 120,
+            delay: Math.random() * 9,
+            drift: (Math.random() - 0.5) * 120,
         }))
     ).current;
 
@@ -36,24 +37,24 @@ function Particles({ count = 24 }) {
                     key={p.id}
                     className="absolute rounded-full"
                     style={{
-                        left:       `${p.x}%`,
-                        top:        `${p.startY}%`,
-                        width:      p.size,
-                        height:     p.size,
+                        left: `${p.x}%`,
+                        top: `${p.startY}%`,
+                        width: p.size,
+                        height: p.size,
                         background: `rgba(200,169,110,${0.25 + Math.random() * 0.45})`,
-                        boxShadow:  `0 0 ${p.size * 4}px rgba(200,169,110,0.55)`,
+                        boxShadow: `0 0 ${p.size * 4}px rgba(200,169,110,0.55)`,
                     }}
                     animate={{
-                        y:       [0, -(200 + Math.random() * 180)],
-                        x:       [0, p.drift],
+                        y: [0, -(200 + Math.random() * 180)],
+                        x: [0, p.drift],
                         opacity: [0, 0.9, 0.6, 0],
-                        scale:   [0.4, 1, 0.7, 0],
+                        scale: [0.4, 1, 0.7, 0],
                     }}
                     transition={{
                         duration: p.duration,
-                        delay:    p.delay,
-                        repeat:   Infinity,
-                        ease:     'easeOut',
+                        delay: p.delay,
+                        repeat: Infinity,
+                        ease: 'easeOut',
                     }}
                 />
             ))}
@@ -65,23 +66,23 @@ function Particles({ count = 24 }) {
 
 function AnimatedStat({ value, label, delay = 0 }) {
     const [display, setDisplay] = useState(value);
-    const ref          = useRef(null);
-    const hasAnimated  = useRef(false);
+    const ref = useRef(null);
+    const hasAnimated = useRef(false);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting && !hasAnimated.current) {
                     hasAnimated.current = true;
-                    const numeric    = parseFloat(value.replace(/[^0-9.]/g, ''));
-                    const prefix     = value.match(/^[^0-9]*/)?.[0]  ?? '';
-                    const suffix     = value.match(/[^0-9.]*$/)?.[0] ?? '';
-                    const isDecimal  = value.includes('.');
-                    const duration   = 2000;
-                    const start      = performance.now();
+                    const numeric = parseFloat(value.replace(/[^0-9.]/g, ''));
+                    const prefix = value.match(/^[^0-9]*/)?.[0] ?? '';
+                    const suffix = value.match(/[^0-9.]*$/)?.[0] ?? '';
+                    const isDecimal = value.includes('.');
+                    const duration = 2000;
+                    const start = performance.now();
                     const step = (now) => {
                         const progress = Math.min((now - start) / duration, 1);
-                        const eased    = 1 - Math.pow(1 - progress, 3);
+                        const eased = 1 - Math.pow(1 - progress, 3);
                         setDisplay(
                             `${prefix}${isDecimal ? (eased * numeric).toFixed(1) : Math.floor(eased * numeric)}${suffix}`
                         );
@@ -118,12 +119,12 @@ export default function HeroSection() {
     const sectionRef = useRef(null);
 
     const { scrollYProgress } = useScroll({
-        target:  sectionRef,
-        offset:  ['start start', 'end start'],
+        target: sectionRef,
+        offset: ['start start', 'end start'],
     });
-    const bgY            = useTransform(scrollYProgress, [0, 1], ['0%',  '22%']);
-    const bgScale        = useTransform(scrollYProgress, [0, 1], [1.0,  1.07]);
-    const contentY       = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
+    const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
+    const bgScale = useTransform(scrollYProgress, [0, 1], [1.0, 1.07]);
+    const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
     const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
     const handleScroll = (href) => {
@@ -220,7 +221,7 @@ export default function HeroSection() {
             {/* ═══ LIGHT SWEEP (one-shot) ═════════════════════════════════════ */}
             <motion.div
                 initial={{ x: '-130%', opacity: 0.7 }}
-                animate={{ x: '230%',  opacity: 0   }}
+                animate={{ x: '230%', opacity: 0 }}
                 transition={{ duration: 1.7, delay: 0.9, ease: [0.4, 0, 0.2, 1] }}
                 className="absolute inset-y-0 w-[28%] pointer-events-none z-20"
                 style={{
@@ -243,7 +244,7 @@ export default function HeroSection() {
                     {/* — Eyebrow — */}
                     <motion.div
                         initial={{ opacity: 0, y: 26, filter: 'blur(6px)' }}
-                        animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                         transition={{ duration: 0.8, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
                         className="mb-8"
                     >
@@ -263,17 +264,16 @@ export default function HeroSection() {
                             <span key={i}>
                                 <motion.span
                                     initial={{ opacity: 0, y: 52, filter: 'blur(10px)' }}
-                                    animate={{ opacity: 1, y: 0,  filter: 'blur(0px)'  }}
+                                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                     transition={{
                                         duration: 0.72,
-                                        delay:    1.35 + i * 0.14,
-                                        ease:     [0.22, 1, 0.36, 1],
+                                        delay: 1.35 + i * 0.14,
+                                        ease: [0.22, 1, 0.36, 1],
                                     }}
-                                    className={`inline-block mr-[0.26em] ${
-                                        word.gold
+                                    className={`inline-block mr-[0.26em] ${word.gold
                                             ? 'text-[#C8A96E] drop-shadow-[0_0_32px_rgba(200,169,110,0.38)]'
                                             : 'text-white'
-                                    }`}
+                                        }`}
                                 >
                                     {word.text}
                                 </motion.span>
@@ -295,7 +295,7 @@ export default function HeroSection() {
                     {/* — Subheadline — */}
                     <motion.p
                         initial={{ opacity: 0, y: 28, filter: 'blur(4px)' }}
-                        animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                         transition={{ duration: 0.9, delay: 2.15, ease: [0.22, 1, 0.36, 1] }}
                         className="text-base md:text-lg text-[#7A8C9E] leading-relaxed max-w-xl mb-10 font-light tracking-wide"
                     >
@@ -319,7 +319,7 @@ export default function HeroSection() {
                             <Button
                                 variant="primary"
                                 size="lg"
-                                onClick={() => handleScroll('#consultation')}
+                                onClick={() => { trackEvent('hero_cta_click'); handleScroll('#consultation'); }}
                                 className="group w-full sm:w-auto"
                             >
                                 Book a Consultation
@@ -353,9 +353,9 @@ export default function HeroSection() {
                         className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-12 pt-6 border-t border-white/[0.07]"
                     >
                         {[
-                            { value: '20+',   label: 'Years Experience', delay: 0   },
-                            { value: '₦500B', label: 'Growth Roadmap',   delay: 200 },
-                            { value: '35%',   label: 'Avg. Sales Growth', delay: 400 },
+                            { value: '20+', label: 'Years Experience', delay: 0 },
+                            { value: '₦500B', label: 'Growth Roadmap', delay: 200 },
+                            { value: '35%', label: 'Avg. Sales Growth', delay: 400 },
                         ].map((stat) => (
                             <AnimatedStat key={stat.label} {...stat} />
                         ))}

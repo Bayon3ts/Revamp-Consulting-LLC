@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, Mail, Linkedin, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Phone, Mail, Linkedin, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { AnimatedSection, itemVariants, SectionLabel, SectionTitle } from '../components/SectionWrapper';
 import Button from '../components/Button';
+import CalendlyPlaceholder from '../components/CalendlyPlaceholder';
+import { submitLeadForm } from '../utils/submitLeadForm';
+import trackEvent from '../utils/trackEvent';
 
+// ── Contact info ───────────────────────────────────────────────────────────────
 const contactInfo = [
     {
         icon: Phone,
@@ -31,24 +35,98 @@ const contactInfo = [
     },
 ];
 
+// ── Service options ────────────────────────────────────────────────────────────
+const SERVICE_OPTIONS = [
+    { value: '', label: 'Select a service…' },
+    { value: 'Strategy & Transformation', label: 'Strategy & Transformation' },
+    { value: 'Financial Planning & Analysis', label: 'Financial Planning & Analysis' },
+    { value: 'Technology & Digital Strategy', label: 'Technology & Digital Strategy' },
+    { value: 'Retained Advisory', label: 'Retained Advisory' },
+    { value: 'Project-Based Consulting', label: 'Project-Based Consulting' },
+    { value: 'Fractional C-Suite', label: 'Fractional C-Suite' },
+    { value: 'Executive Workshops', label: 'Executive Workshops' },
+    { value: 'Other', label: 'Other' },
+];
+
+// ── Shared input className ─────────────────────────────────────────────────────
+const inputClass = (hasError) =>
+    `w-full bg-white/5 border ${hasError ? 'border-red-400/70' : 'border-white/15'} rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none ${hasError ? 'focus:border-red-400' : 'focus:border-[#C8A96E]'} focus:bg-white/8 transition-all duration-200`;
+
+// ── Validation helper ──────────────────────────────────────────────────────────
+function validate(data) {
+    const errs = {};
+    if (!data.name.trim()) errs.name = 'Full name is required.';
+    if (!data.email.trim()) errs.email = 'Email address is required.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+        errs.email = 'Please enter a valid email address.';
+    if (!data.service) errs.service = 'Please select a service.';
+    if (!data.message.trim()) errs.message = 'Please describe your challenge or inquiry.';
+    return errs;
+}
+
+// ── Field error label ──────────────────────────────────────────────────────────
+function FieldError({ msg }) {
+    if (!msg) return null;
+    return (
+        <p className="mt-1.5 flex items-center gap-1.5 text-red-400 text-xs">
+            <AlertCircle size={11} />
+            {msg}
+        </p>
+    );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function ConsultationSection() {
     const [formData, setFormData] = useState({
-        name: '', company: '', email: '', phone: '', message: '',
+        name: '', company: '', email: '', phone: '', service: '', message: '',
+        _hp: '', // honeypot — must stay empty
     });
+    const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        // Clear individual field error as user types
+        if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitError('');
+
+        // Client-side validation
+        const errs = validate(formData);
+        if (Object.keys(errs).length > 0) {
+            setErrors(errs);
+            return;
+        }
+
         setLoading(true);
-        // Simulate submission
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        setSubmitted(true);
+
+        const result = await submitLeadForm({
+            fullName: formData.name,
+            companyName: formData.company,
+            email: formData.email,
+            phone: formData.phone,
+            serviceInterestedIn: formData.service,
+            businessChallenge: formData.message,
+            _hp: formData._hp,
+        });
+
         setLoading(false);
+
+        if (result.ok) {
+            trackEvent('form_submission_success', { service: formData.service });
+            setSubmitted(true);
+        } else {
+            trackEvent('form_submission_error', { error: result.error });
+            setSubmitError(
+                'Something went wrong submitting your request. Please try again or reach us directly by email.'
+            );
+        }
     };
 
     return (
@@ -84,21 +162,42 @@ export default function ConsultationSection() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16">
 
-                    {/* Contact Form */}
+                    {/* Contact Form column */}
                     <AnimatedSection className="lg:col-span-3">
+
+                        {/* Calendly booking block */}
+                        <CalendlyPlaceholder />
+
                         {submitted ? (
+                            /* ── Success state ── */
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="bg-white/5 border border-[#C8A96E]/30 rounded-sm p-10 flex flex-col items-center justify-center text-center min-h-[400px]"
                             >
                                 <CheckCircle size={48} className="text-[#C8A96E] mb-5" />
-                                <h3 className="text-white text-2xl font-bold mb-3">Message Received</h3>
+                                <h3 className="text-white text-2xl font-bold mb-3">Request Received</h3>
                                 <p className="text-[#A8B5C5] text-base max-w-sm leading-relaxed">
-                                    Thank you for reaching out. A member of the Revamp team will contact you within one business day.
+                                    Thank you — your consultation request has been received. A member of the Revamp team will review your details and get back to you within one business day.
+                                </p>
+                                {/* Calendly follow-up nudge */}
+                                <p className="text-[#7A8C9E] text-sm mt-5">
+                                    Want to pick a time now?{' '}
+                                    <motion.span
+                                        whileHover={{ color: '#C8A96E' }}
+                                        className="text-[#C8A96E] font-semibold cursor-pointer underline underline-offset-2"
+                                        onClick={() => {
+                                            // Replace '#' with live Calendly URL when ready
+                                            window.open('#', '_blank');
+                                            trackEvent('booking_click', { context: 'success_state' });
+                                        }}
+                                    >
+                                        Book a time directly →
+                                    </motion.span>
                                 </p>
                             </motion.div>
                         ) : (
+                            /* ── Form ── */
                             <motion.form
                                 variants={itemVariants}
                                 onSubmit={handleSubmit}
@@ -106,6 +205,20 @@ export default function ConsultationSection() {
                                 noValidate
                                 aria-label="Consultation request form"
                             >
+                                {/* Honeypot — hidden from real users, bots will fill it */}
+                                <div aria-hidden="true" className="absolute opacity-0 pointer-events-none h-0 overflow-hidden">
+                                    <label htmlFor="_hp">Leave this field blank</label>
+                                    <input
+                                        id="_hp"
+                                        name="_hp"
+                                        type="text"
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                        value={formData._hp}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
                                 {/* Name & Company */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <div>
@@ -120,8 +233,10 @@ export default function ConsultationSection() {
                                             value={formData.name}
                                             onChange={handleChange}
                                             placeholder="Your full name"
-                                            className="w-full bg-white/5 border border-white/15 rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none focus:border-[#C8A96E] focus:bg-white/8 transition-all duration-200"
+                                            className={inputClass(!!errors.name)}
+                                            aria-describedby={errors.name ? 'name-error' : undefined}
                                         />
+                                        <FieldError msg={errors.name} />
                                     </div>
                                     <div>
                                         <label htmlFor="company" className="block text-[#C5CDD9] text-xs font-semibold tracking-wider uppercase mb-2">
@@ -134,7 +249,7 @@ export default function ConsultationSection() {
                                             value={formData.company}
                                             onChange={handleChange}
                                             placeholder="Organization name"
-                                            className="w-full bg-white/5 border border-white/15 rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none focus:border-[#C8A96E] focus:bg-white/8 transition-all duration-200"
+                                            className={inputClass(false)}
                                         />
                                     </div>
                                 </div>
@@ -153,8 +268,10 @@ export default function ConsultationSection() {
                                             value={formData.email}
                                             onChange={handleChange}
                                             placeholder="you@company.com"
-                                            className="w-full bg-white/5 border border-white/15 rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none focus:border-[#C8A96E] focus:bg-white/8 transition-all duration-200"
+                                            className={inputClass(!!errors.email)}
+                                            aria-describedby={errors.email ? 'email-error' : undefined}
                                         />
+                                        <FieldError msg={errors.email} />
                                     </div>
                                     <div>
                                         <label htmlFor="phone" className="block text-[#C5CDD9] text-xs font-semibold tracking-wider uppercase mb-2">
@@ -167,15 +284,48 @@ export default function ConsultationSection() {
                                             value={formData.phone}
                                             onChange={handleChange}
                                             placeholder="+234 (0) 800 000 0000"
-                                            className="w-full bg-white/5 border border-white/15 rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none focus:border-[#C8A96E] focus:bg-white/8 transition-all duration-200"
+                                            className={inputClass(false)}
                                         />
                                     </div>
                                 </div>
 
-                                {/* Message */}
+                                {/* Service Interested In */}
+                                <div>
+                                    <label htmlFor="service" className="block text-[#C5CDD9] text-xs font-semibold tracking-wider uppercase mb-2">
+                                        Service Interested In <span className="text-[#C8A96E]">*</span>
+                                    </label>
+                                    <select
+                                        id="service"
+                                        name="service"
+                                        required
+                                        value={formData.service}
+                                        onChange={handleChange}
+                                        className={`${inputClass(!!errors.service)} appearance-none`}
+                                        aria-describedby={errors.service ? 'service-error' : undefined}
+                                        style={{
+                                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A8C9E' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                                            backgroundRepeat: 'no-repeat',
+                                            backgroundPosition: 'right 1rem center',
+                                        }}
+                                    >
+                                        {SERVICE_OPTIONS.map((opt) => (
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                                className="bg-[#0B1F3A] text-white"
+                                                disabled={opt.value === ''}
+                                            >
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <FieldError msg={errors.service} />
+                                </div>
+
+                                {/* Business Challenge / Message */}
                                 <div>
                                     <label htmlFor="message" className="block text-[#C5CDD9] text-xs font-semibold tracking-wider uppercase mb-2">
-                                        Strategic Challenge or Inquiry <span className="text-[#C8A96E]">*</span>
+                                        Business Challenge or Inquiry <span className="text-[#C8A96E]">*</span>
                                     </label>
                                     <textarea
                                         id="message"
@@ -185,9 +335,23 @@ export default function ConsultationSection() {
                                         value={formData.message}
                                         onChange={handleChange}
                                         placeholder="Briefly describe your current challenge or what you're looking to achieve..."
-                                        className="w-full bg-white/5 border border-white/15 rounded-sm px-4 py-3.5 text-white text-sm placeholder-[#7A8C9E] focus:outline-none focus:border-[#C8A96E] focus:bg-white/8 transition-all duration-200 resize-none"
+                                        className={`${inputClass(!!errors.message)} resize-none`}
+                                        aria-describedby={errors.message ? 'message-error' : undefined}
                                     />
+                                    <FieldError msg={errors.message} />
                                 </div>
+
+                                {/* Submission error banner */}
+                                {submitError && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-start gap-3 p-4 rounded-sm bg-red-500/10 border border-red-400/30"
+                                    >
+                                        <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-red-400 text-sm leading-relaxed">{submitError}</p>
+                                    </motion.div>
+                                )}
 
                                 <Button
                                     type="submit"
@@ -199,7 +363,7 @@ export default function ConsultationSection() {
                                     {loading ? (
                                         <span className="flex items-center gap-2">
                                             <span className="w-4 h-4 border-2 border-[#0B1F3A]/30 border-t-[#0B1F3A] rounded-full animate-spin" />
-                                            Sending...
+                                            Sending…
                                         </span>
                                     ) : (
                                         <span className="flex items-center gap-2">
@@ -212,7 +376,7 @@ export default function ConsultationSection() {
                         )}
                     </AnimatedSection>
 
-                    {/* Contact Info */}
+                    {/* Contact Info column */}
                     <AnimatedSection className="lg:col-span-2">
                         <motion.div variants={itemVariants} className="mb-8">
                             <h3 className="text-white font-semibold text-lg mb-1">Direct Contact</h3>
@@ -220,7 +384,7 @@ export default function ConsultationSection() {
                         </motion.div>
 
                         <div className="space-y-5">
-                            {contactInfo.map((info, i) => {
+                            {contactInfo.map((info) => {
                                 const Icon = info.icon;
                                 const content = (
                                     <div className="flex items-start gap-4 group">
