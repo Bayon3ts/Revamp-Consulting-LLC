@@ -107,17 +107,17 @@ export default function Footer() {
                         </h3>
                         <ul className="space-y-4" role="list">
                             <li>
-                                <a href="mailto:info@revampconsulting.ng"
+                                <a href="mailto:adekunle.olusanya@yahoo.com"
                                     className="flex items-start gap-3 text-[#7A8C9E] text-sm hover:text-[#C8A96E] transition-colors duration-200">
                                     <Mail size={14} className="mt-0.5 flex-shrink-0 text-[#C8A96E]" />
-                                    info@revampconsulting.ng
+                                    adekunle.olusanya@yahoo.com
                                 </a>
                             </li>
                             <li>
                                 <a href="tel:+2348034653120"
                                     className="flex items-start gap-3 text-[#7A8C9E] text-sm hover:text-[#C8A96E] transition-colors duration-200">
                                     <Phone size={14} className="mt-0.5 flex-shrink-0 text-[#C8A96E]" />
-                                    +234 (0) 803 465 3120
+                                    +234 (0) 803 4653 120
                                 </a>
                             </li>
                             <li>

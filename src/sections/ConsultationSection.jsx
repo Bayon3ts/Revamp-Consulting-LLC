@@ -9,8 +9,8 @@ import trackEvent from '../utils/trackEvent';
 
 // ── Contact info ───────────────────────────────────────────────────────────────
 const contactInfo = [
-    { icon: Phone,    label: 'Phone',    value: '+234 (0) 800 000 0000',          href: 'tel:+2348000000000' },
-    { icon: Mail,     label: 'Email',    value: 'info@revampconsulting.ng',        href: 'mailto:info@revampconsulting.ng' },
+    { icon: Phone,    label: 'Phone',    value: '+234 803 4653 210',               href: 'tel:+2348034653210' },
+    { icon: Mail,     label: 'Email',    value: 'adekunle.olusanya@yahoo.com',     href: 'mailto:adekunle.olusanya@yahoo.com' },
     { icon: Linkedin, label: 'LinkedIn', value: 'Revamp Consulting LLC',           href: 'https://www.linkedin.com/company/revamp-consulting-llc' },
     { icon: MapPin,   label: 'Location', value: 'Lagos, Nigeria',                 href: null },
 ];
@@ -307,7 +307,7 @@ export default function ConsultationSection() {
                                         <label htmlFor="phone" className={labelClass}>Phone Number</label>
                                         <input id="phone" name="phone" type="tel"
                                             value={formData.phone} onChange={handleChange}
-                                            placeholder="+234 (0) 800 000 0000" className={inputClass(false)} />
+                                            placeholder="+234 803 4653 210" className={inputClass(false)} />
                                     </div>
                                 </div>
 
