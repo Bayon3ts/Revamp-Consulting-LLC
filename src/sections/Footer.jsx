@@ -1,4 +1,5 @@
 import { Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const quickLinks = [
     { label: 'Services', href: '#services' },
@@ -28,13 +29,7 @@ export default function Footer() {
                     {/* Brand */}
                     <div className="lg:col-span-2">
                         <div className="flex items-center gap-3 mb-5">
-                            <div className="w-9 h-9 bg-[#C8A96E] rounded-sm flex items-center justify-center flex-shrink-0">
-                                <span className="text-[#0B1F3A] font-bold text-sm">RC</span>
-                            </div>
-                            <div>
-                                <span className="text-white font-bold text-base block leading-none tracking-wide">Revamp Consulting LLC</span>
-                                <span className="text-[#C8A96E] text-[10px] font-medium tracking-[0.15em] uppercase">Strategic Advisory</span>
-                            </div>
+                            <img src={logo} alt="Revamp Consulting LLC" className="h-9 w-auto object-contain" />
                         </div>
                         <p className="text-[#7A8C9E] text-sm leading-relaxed max-w-sm mb-6">
                             Revamp Consulting LLC partners with founders, executives, and organizations to solve complex challenges, unlock growth opportunities, and execute transformative strategies across Africa and beyond.

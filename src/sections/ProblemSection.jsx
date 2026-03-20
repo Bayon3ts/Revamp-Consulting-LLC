@@ -1,42 +1,42 @@
 import { motion, useInView } from 'framer-motion';
-import { TrendingDown, AlertOctagon, Compass, Target, ArrowRight } from 'lucide-react';
+import { Compass, Zap, TrendingUp, GitMerge, ArrowRight } from 'lucide-react';
 import { useRef } from 'react';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const painPoints = [
+const focusPoints = [
     {
-        id:          'growth',
-        Icon:        TrendingDown,
-        title:       'Growth Stagnation',
-        description: 'Revenue plateaus, market share erosion, and the inability to identify and capitalize on new growth vectors.',
+        id:          'clarity',
+        Icon:        Compass,
+        title:       'Strategic Clarity',
+        description: 'Unlocking certainty for complex business decisions and boardroom strategy.',
         number:      '01',
         iconBg:      'bg-[#0B1F3A]/[0.08] border-[#0B1F3A]/15 group-hover:bg-[#0B1F3A]/14 group-hover:border-[#0B1F3A]/30',
         iconColor:   'text-[#0B1F3A]',
     },
     {
-        id:          'operations',
-        Icon:        AlertOctagon,
-        title:       'Operational Inefficiencies',
-        description: 'Bloated processes, misaligned teams, and execution gaps that drain resources and slow organizational momentum.',
+        id:          'execution',
+        Icon:        Zap,
+        title:       'Stronger Execution',
+        description: 'Building robust operational infrastructure and governance for technology and growth Initiatives.',
         number:      '02',
         iconBg:      'bg-[#C8A96E]/12 border-[#C8A96E]/25 group-hover:bg-[#C8A96E]/20 group-hover:border-[#C8A96E]/45',
         iconColor:   'text-[#C8A96E]',
     },
     {
-        id:          'strategy',
-        Icon:        Compass,
-        title:       'Strategic Ambiguity',
-        description: 'Unclear direction, conflicting priorities, and leadership misalignment that paralyze decision-making.',
+        id:          'growth',
+        Icon:        TrendingUp,
+        title:       'Scalable Growth',
+        description: 'Driving revenue acceleration through disciplined planning and market positioning.',
         number:      '03',
         iconBg:      'bg-[#1A4A6E]/[0.09] border-[#1A4A6E]/18 group-hover:bg-[#1A4A6E]/16 group-hover:border-[#1A4A6E]/35',
         iconColor:   'text-[#1A4A6E]',
     },
     {
-        id:          'execution',
-        Icon:        Target,
-        title:       'Execution Gaps',
-        description: 'Well-designed plans that fail at implementation due to inadequate governance, accountability, and execution structure.',
+        id:          'alignment',
+        Icon:        GitMerge,
+        title:       'Better Alignment',
+        description: 'Ensuring absolute cohesion between strategy, infrastructure, and delivery teams.',
         number:      '04',
         iconBg:      'bg-[#8B6914]/[0.09] border-[#8B6914]/18 group-hover:bg-[#8B6914]/16 group-hover:border-[#8B6914]/35',
         iconColor:   'text-[#8B6914]',
@@ -185,7 +185,7 @@ export default function ProblemSection() {
                                 transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
                                 className="w-1.5 h-1.5 rounded-full bg-[#C8A96E]"
                             />
-                            The Challenge
+                            Our Advisory Focus
                         </span>
                     </motion.div>
 
@@ -195,9 +195,9 @@ export default function ProblemSection() {
                         id="problem-title"
                         className="text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.1] tracking-tight mb-5"
                     >
-                        <span className="text-[#0B1F3A]">Complex Business Challenges</span>
+                        <span className="text-[#0B1F3A]">What We Help</span>
                         <br />
-                        <span className="text-[#C8A96E]">Require Clear Strategy</span>
+                        <span className="text-[#C8A96E]">Leaders Achieve</span>
                     </motion.h2>
 
                     {/* Gold rule */}
@@ -215,14 +215,14 @@ export default function ProblemSection() {
                         variants={fadeUpVariants}
                         className="text-[#7A8C9E] text-base md:text-lg leading-relaxed font-light max-w-2xl"
                     >
-                        Most organizations don't fail for lack of talent or ambition. They fail because
-                        strategy is unclear, execution is misaligned, and the right guidance arrives too late.
+                        We partner with executives and boards to solve complex strategic dilemmas,
+                        optimize operational infrastructure, and deliver high-impact growth.
                     </motion.p>
                 </motion.div>
 
-                {/* ── Pain Points Grid ── */}
+                {/* ── Focus Points Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-16 md:mb-20">
-                    {painPoints.map((point, i) => (
+                    {focusPoints.map((point, i) => (
                         <PainCard key={point.id} point={point} index={i} />
                     ))}
                 </div>

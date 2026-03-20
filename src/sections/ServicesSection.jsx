@@ -1,5 +1,5 @@
 import { motion, useInView } from 'framer-motion';
-import { Lightbulb, BarChart3, TrendingUp, Rocket, GraduationCap, Globe } from 'lucide-react';
+import { Lightbulb, BarChart3, TrendingUp, Rocket, GraduationCap, Briefcase, Code, Settings } from 'lucide-react';
 import { useRef } from 'react';
 
 // ─── 6 curated core capabilities ─────────────────────────────────────────────
@@ -8,50 +8,66 @@ const CAPABILITIES = [
     {
         id:          'strategy',
         Icon:        Lightbulb,
-        title:       'Strategic Advisory',
-        description: 'High-level counsel on corporate direction, competitive positioning, and long-term value creation for executives and boards.',
+        title:       'Strategy Design & Execution',
+        description: 'High-level counsel on corporate direction, competitive positioning, and execution frameworks for executives and boards.',
         outcome:     'Clarity on where to compete and how to win.',
         accent:      { bg: 'bg-[#0B1F3A]', icon: 'text-[#C8A96E]', hover: 'group-hover:bg-[#C8A96E] group-hover:text-[#0B1F3A]' },
     },
     {
-        id:          'transformation',
-        Icon:        Rocket,
-        title:       'Business Transformation',
-        description: 'End-to-end programme leadership that moves organizations from legacy operating models to high-performance structures.',
-        outcome:     'Measurable change that sticks.',
-        accent:      { bg: 'bg-[#C8A96E]/12', icon: 'text-[#8B6914]', hover: 'group-hover:bg-[#8B6914] group-hover:text-white' },
-    },
-    {
         id:          'finance',
         Icon:        BarChart3,
-        title:       'Financial Strategy',
+        title:       'Financial Modeling',
         description: 'Rigorous financial modelling, scenario planning, and capital allocation advisory that sharpens investment decision-making.',
         outcome:     'Smarter capital, stronger returns.',
         accent:      { bg: 'bg-[#1A4A6E]/10', icon: 'text-[#1A4A6E]', hover: 'group-hover:bg-[#1A4A6E] group-hover:text-white' },
     },
     {
-        id:          'growth',
-        Icon:        TrendingUp,
-        title:       'Growth & Market Expansion',
-        description: 'Revenue acceleration through market entry strategy, pipeline architecture, and brand positioning for competitive markets.',
-        outcome:     'New revenue streams, faster.',
+        id:          'startup',
+        Icon:        Rocket,
+        title:       'Startup Advisory',
+        description: 'End-to-end support for founders, including business structuring, pitch decking, and growth architecture.',
+        outcome:     'Investor-ready structures and scale.',
+        accent:      { bg: 'bg-[#C8A96E]/12', icon: 'text-[#8B6914]', hover: 'group-hover:bg-[#8B6914] group-hover:text-white' },
+    },
+    {
+        id:          'project',
+        Icon:        Briefcase,
+        title:       'Project Management',
+        description: 'Disciplined governance and execution management for large-scale infrastructure and corporate projects.',
+        outcome:     'On-time, within budget delivery.',
         accent:      { bg: 'bg-[#0B1F3A]', icon: 'text-[#C8A96E]', hover: 'group-hover:bg-[#C8A96E] group-hover:text-[#0B1F3A]' },
     },
     {
-        id:          'leadership',
-        Icon:        GraduationCap,
-        title:       'Executive Leadership',
-        description: 'Leadership development, C-suite coaching, and organisational capability building for teams navigating complex growth environments.',
-        outcome:     'Stronger leaders at every level.',
+        id:          'sales',
+        Icon:        TrendingUp,
+        title:       'Sales & Marketing',
+        description: 'Revenue acceleration through market entry strategy, pipeline architecture, and brand positioning.',
+        outcome:     'New revenue streams, faster.',
         accent:      { bg: 'bg-[#C8A96E]/12', icon: 'text-[#8B6914]', hover: 'group-hover:bg-[#0B1F3A] group-hover:text-[#C8A96E]' },
     },
     {
-        id:          'technology',
-        Icon:        Globe,
-        title:       'Technology & Product',
-        description: 'Digital strategy, product roadmap advisory, and technology governance that align engineering investment with business outcomes.',
-        outcome:     'Technology that drives, not just supports.',
+        id:          'software',
+        Icon:        Code,
+        title:       'Software Product Delivery',
+        description: 'Digital strategy, product roadmap advisory, and technology governance resolving alignment with business outcomes.',
+        outcome:     'Technology that drives growth.',
         accent:      { bg: 'bg-[#1A4A6E]/10', icon: 'text-[#1A4A6E]', hover: 'group-hover:bg-[#C8A96E] group-hover:text-[#0B1F3A]' },
+    },
+    {
+        id:          'training',
+        Icon:        GraduationCap,
+        title:       'Executive Training',
+        description: 'Leadership development and organisational capability building for teams navigating growth.',
+        outcome:     'Stronger leaders at every level.',
+        accent:      { bg: 'bg-[#C8A96E]/12', icon: 'text-[#8B6914]', hover: 'group-hover:bg-[#8B6914] group-hover:text-white' },
+    },
+    {
+        id:          'custom',
+        Icon:        Settings,
+        title:       'Custom Solutions',
+        description: 'Bespoke advisory and operational support tailored to unique corporate challenges.',
+        outcome:     'Precision fixes for complex problems.',
+        accent:      { bg: 'bg-[#1A4A6E]/10', icon: 'text-[#1A4A6E]', hover: 'group-hover:bg-[#1A4A6E] group-hover:text-white' },
     },
 ];
 
@@ -215,7 +231,7 @@ export default function ServicesSection() {
                         variants={fadeUpVariants}
                         className="text-[#7A8C9E] text-sm md:text-base leading-relaxed max-w-sm md:text-right font-light"
                     >
-                        Six capabilities. Deep expertise in each. We don't do everything —
+                        Comprehensive capabilities. Deep expertise in each. We don't do everything —
                         we do the things that move the needle.
                     </motion.p>
                 </motion.div>

@@ -202,13 +202,7 @@ export default function LeadershipSection() {
                         {/* Bio — rewritten with real credibility from the pitch deck */}
                         <motion.div variants={fadeUpVariants} className="space-y-4 text-[#6A7D90] text-base leading-relaxed mb-8 font-light">
                             <p>
-                                Adekunle Olusanya is a C-suite executive and strategic leader with over 20 years of cross-sector experience spanning telecoms, fintech, mobility, insurance, and management consulting. He has delivered $1B+ in infrastructure projects across Africa and advised organizations from early-stage startups to large corporates on strategy, transformation, and growth.
-                            </p>
-                            <p>
-                                As the founder of Revamp Consulting LLC, he brings a practitioner's precision to every engagement — combining deep analytical rigor built at Huawei, Ericsson, and Nokia with board-level strategic advisory. His engagements have included expanding Sovereign Finance Group's strategic roadmap from ₦61B to ₦500B, driving 35% documented sales growth for JV Interiors, and deploying 17,000 electric vehicles as Head of Operations at QORAY Mobility.
-                            </p>
-                            <p>
-                                He holds an Executive MBA in Finance from the University of Lagos Business School, is a certified PMP® from the Project Management Institute (USA), and has completed executive education at the University of Virginia Darden Business School.
+                                Adekunle Olusanya is a C-suite executive and strategic leader with over 20 years of cross-sector experience spanning telecom, tech, mobility, and management consulting. He has delivered $1B+ in infrastructure projects across Africa and advised diverse organizations, from early-stage startups to large corporates, on strategy, transformation, and growth. As founder of Revamp Consulting LLC, he combines deep analytical rigor honed at global technology and telecommunications leaders with board-level strategic advisory, ensuring practitioner-led precision. His impact includes scaling strategic initiatives, driving substantial sales growth, and leading large-scale deployments. Adekunle holds an Executive MBA (ULBS), is PMP® certified.
                             </p>
                         </motion.div>
 
@@ -254,54 +248,6 @@ export default function LeadershipSection() {
                 </div>
 
                 {/* ── Career Timeline ── */}
-                <motion.div ref={careerRef}
-                    initial={{ opacity: 0, y: 32 }}
-                    animate={careerInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                    className="mt-20 pt-12 border-t border-[#0B1F3A]/[0.07]"
-                >
-                    <p className="text-[#0B1F3A] font-semibold text-xs mb-8 uppercase tracking-[0.18em]">
-                        20-Year Career Trajectory
-                    </p>
-                    <div className="relative">
-                        {/* Connecting line */}
-                        <motion.div
-                            initial={{ scaleX: 0 }}
-                            animate={careerInView ? { scaleX: 1 } : {}}
-                            transition={{ duration: 1.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                            className="absolute top-4 left-0 right-0 h-px origin-left hidden lg:block"
-                            style={{ background: 'linear-gradient(to right, #C8A96E, rgba(200,169,110,0.2), transparent)' }}
-                        />
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 lg:gap-0">
-                            {CAREER.map(({ year, role, org, note }, i) => (
-                                <motion.div
-                                    key={org + year}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={careerInView ? { opacity: 1, y: 0 } : {}}
-                                    transition={{ duration: 0.6, delay: 0.4 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                                    className="group relative lg:pr-4"
-                                >
-                                    {/* Dot on line */}
-                                    <div className="hidden lg:flex mb-4 items-center">
-                                        <motion.div
-                                            animate={{ scale: [1, 1.3, 1] }}
-                                            transition={{ repeat: Infinity, duration: 2.5 + i * 0.3, ease: 'easeInOut', delay: i * 0.2 }}
-                                            className="w-2.5 h-2.5 rounded-full bg-[#C8A96E] ring-4 ring-[#C8A96E]/15 flex-shrink-0"
-                                        />
-                                    </div>
-                                    <div className="p-3.5 rounded-sm border border-[#0B1F3A]/[0.07] bg-white/50
-                                                    hover:border-[#C8A96E]/30 hover:bg-white/80
-                                                    transition-all duration-300 group-hover:-translate-y-1">
-                                        <p className="text-[#C8A96E] text-[9px] font-bold tracking-wider uppercase mb-1">{year}</p>
-                                        <p className="text-[#0B1F3A] font-bold text-xs leading-tight mb-0.5">{role}</p>
-                                        <p className="text-[#7A8C9E] text-[11px] font-semibold mb-1">{org}</p>
-                                        <p className="text-[#9AACBC] text-[10px] italic">{note}</p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
 
             </div>
         </section>

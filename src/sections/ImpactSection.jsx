@@ -12,9 +12,9 @@ const METRICS = [
         prefix:  '',
         suffix:  '+',
         label:   'Assets Deployed',
-        context: 'QORAY Mobility',
-        story:   'Built a full EV value chain — ride-hailing, charging, battery swapping, and mass transit — deploying 17,000+ units with a ₦50M+ portfolio.',
-        outcome: '₦50M+ asset portfolio activated.',
+        context: 'Leading Mobility Company',
+        story:   'Built a full EV value chain — ride-hailing, charging, battery swapping, and mass transit — deploying 17,000+ units.',
+        outcome: '17,000 units deployed.',
     },
     {
         id:      'roadmap',
@@ -22,9 +22,9 @@ const METRICS = [
         prefix:  '₦',
         suffix:  'B',
         label:   'Growth Roadmap',
-        context: 'Sovereign Finance Group',
-        story:   'Developed a 5-year group strategy to unify Finance House, MFB, and Asset Management divisions.',
-        outcome: 'Market opportunity expanded from ₦61B to ₦500B.',
+        context: 'Financial Services Group',
+        story:   'Developed a 5-year group strategy to unify banking and asset management divisions.',
+        outcome: '₦61B to ₦500B roadmap approved.',
     },
     {
         id:      'sales',
@@ -32,9 +32,9 @@ const METRICS = [
         prefix:  '',
         suffix:  '%',
         label:   'Avg. Sales Growth',
-        context: 'JV Interiors',
+        context: 'Interior Solutions Company',
         story:   'End-to-end sales transformation advisory, incentive redesign, and performance management overhaul.',
-        outcome: '35% documented revenue uplift delivered.',
+        outcome: '35% sales growth delivered.',
     },
     {
         id:      'industries',
@@ -42,24 +42,13 @@ const METRICS = [
         prefix:  '',
         suffix:  '+',
         label:   'Industries Served',
-        context: 'Cross-sector expertise',
-        story:   'Finance, technology, infrastructure, insurance, FMCG, real estate, media, and more — across Nigeria and West Africa.',
+        context: 'Cross-Sector Expertise',
+        story:   'Finance, technology, infrastructure, insurance, FMCG, real estate, media, and more.',
         outcome: 'Deep bench across every major sector.',
     },
 ];
 
 // ─── Client names from the pitch deck ────────────────────────────────────────
-const CLIENTS = [
-    'QORAY Mobility',
-    'Sovereign Finance Group',
-    'Cornerstone Insurance',
-    'Assetium Capital',
-    'JV Interiors',
-    'Spurt! (Yorubasiti)',
-    'Linkage Assurance',
-    'Bowagate Global',
-    'SourceIN BPO',
-];
 
 // ─── Variants ─────────────────────────────────────────────────────────────────
 
@@ -274,39 +263,6 @@ export default function ImpactSection() {
                     ))}
                 </div>
 
-                {/* ── Client logos strip ── */}
-                <motion.div
-                    ref={clientsRef}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={clientsInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="relative overflow-hidden rounded-sm border border-white/[0.07]
-                               bg-white/[0.03] backdrop-blur-sm px-8 py-6"
-                >
-                    {/* Left gold bar */}
-                    <div className="absolute left-0 inset-y-0 w-[2px] pointer-events-none"
-                        style={{ background: 'linear-gradient(to bottom, transparent, rgba(200,169,110,0.5), transparent)' }} />
-
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                        <span className="text-[#C8A96E] text-[10px] font-bold tracking-[0.22em] uppercase whitespace-nowrap flex-shrink-0">
-                            Selected Clients
-                        </span>
-                        <div className="w-px h-6 bg-white/10 hidden sm:block flex-shrink-0" />
-                        <div className="flex flex-wrap gap-x-6 gap-y-2">
-                            {CLIENTS.map((client, i) => (
-                                <motion.span
-                                    key={client}
-                                    initial={{ opacity: 0 }}
-                                    animate={clientsInView ? { opacity: 1 } : {}}
-                                    transition={{ duration: 0.4, delay: 0.2 + i * 0.06 }}
-                                    className="text-[#6A7D90] text-xs font-medium hover:text-[#C8A96E] transition-colors duration-200 cursor-default"
-                                >
-                                    {client}
-                                </motion.span>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
 
                 {/* ── Tagline ── */}
                 <motion.div
