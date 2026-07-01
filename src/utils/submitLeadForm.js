@@ -1,51 +1,66 @@
 /**
  * submitLeadForm — Revamp Consulting LLC
  *
- * Sends lead form data to adekunle.olusanya@yahoo.com via EmailJS.
+ * Multi-channel lead capture:
+ *   1. HubSpot CRM (v3 Contacts API) — primary
+ *   2. EmailJS — secondary notification channel
+ *   3. Webhook (Zapier / Make / Airtable) — fallback
+ *   4. Dev-log mode — when no credentials are configured
  *
- * ── Setup ─────────────────────────────────────────────────────────────────────
- * 1. Create a free account at https://www.emailjs.com
- * 2. Add your Yahoo email as a service
- * 3. Create an email template using the variables listed below
- * 4. Add these to your .env.local file:
+ * ── HubSpot Setup ─────────────────────────────────────────────────────────────
+ * The form uses the public HubSpot Forms Submissions API.
+ * Ensure you have these in your .env.local:
+ *   VITE_HUBSPOT_PORTAL_ID=your_portal_id
+ *   VITE_HUBSPOT_FORM_GUID=your_form_guid
  *
- *    VITE_EMAILJS_SERVICE_ID=service_xxxxxxx
- *    VITE_EMAILJS_TEMPLATE_ID=template_xxxxxxx
- *    VITE_EMAILJS_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxx
+ * ── Custom Properties ─────────────────────────────────────────────────────────
+ * Ensure these custom properties exist in your HubSpot portal
+ * (Settings → Properties → Contact Properties → Create Property):
+ *   • service_interested_in  (Single-line text or Dropdown)
+ *   • business_challenge     (Multi-line text)
  *
- * ── Template Variables (use these in your EmailJS template) ───────────────────
- *    {{fullName}}            — sender's full name
- *    {{companyName}}         — organization name
- *    {{email}}               — reply-to email
- *    {{phone}}               — phone number
- *    {{serviceInterestedIn}} — selected service
- *    {{businessChallenge}}   — their message / challenge
- *    {{submittedAt}}         — submission timestamp
- *    {{pageUrl}}             — page they submitted from
+ * ── Resend API Setup ─────────────────────────────────────────────────────────────
+ * 1. Ensure RESEND_API_KEY is configured in your .env.local and Vercel project
+ * 2. Vercel Serverless Function proxy is located at /api/send-email
+ *
+ * ── Template Variables (sent to API payload) ───────────────────────────────────
+ *    fullName            — sender's full name
+ *    firstname           — sender's first name
+ *    companyName         — organization name
+ *    email               — reply-to email
+ *    phone               — phone number
+ *    serviceInterestedIn — selected service
+ *    businessChallenge   — their message / challenge
+ *    submittedAt         — submission timestamp
+ *    pageUrl             — page they submitted from
  *
  * ── Anti-Spam ─────────────────────────────────────────────────────────────────
  *    Honeypot field (_hp) — discard any submission where _hp is non-empty.
  */
 
-const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+// ── HubSpot ────────────────────────────────────────────────────────────────────
+const HUBSPOT_PORTAL_ID = import.meta.env.VITE_HUBSPOT_PORTAL_ID;
+const HUBSPOT_FORM_GUID = import.meta.env.VITE_HUBSPOT_FORM_GUID;
+const HUBSPOT_API_BASE  = 'https://api.hsforms.com';
 
-// Optional: Zapier / Make / Airtable webhook as an alternative
+// ── Webhook ────────────────────────────────────────────────────────────────────
 const WEBHOOK_ENDPOINT = import.meta.env.VITE_LEAD_FORM_ENDPOINT;
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
 /**
- * Loads the EmailJS SDK dynamically (no npm install needed).
+ * Splits a full name string into { firstname, lastname }.
+ * If only one word is provided, lastname is set to an empty string.
  */
-function loadEmailJS() {
-    return new Promise((resolve, reject) => {
-        if (window.emailjs) { resolve(); return; }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load EmailJS SDK'));
-        document.head.appendChild(script);
-    });
+function splitName(fullName) {
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 1) {
+        return { firstname: parts[0] || '', lastname: '' };
+    }
+    return {
+        firstname: parts[0],
+        lastname: parts.slice(1).join(' '),
+    };
 }
 
 /**
@@ -60,58 +75,79 @@ function loadEmailJS() {
  */
 
 /**
- * Submits a lead form to EmailJS (primary) or a webhook (fallback).
+ * Submits a lead form to HubSpot (primary), EmailJS (secondary), or a webhook (fallback).
  *
  * @param {LeadPayload} formData
  * @returns {Promise<{ ok: boolean, data?: any, error?: string }>}
  */
 export async function submitLeadForm(formData) {
+    console.log('[DEBUG] Portal:', HUBSPOT_PORTAL_ID, 'Form:', HUBSPOT_FORM_GUID);
+
     // ── Honeypot check ─────────────────────────────────────────────────────────
     if (formData._hp) {
         // Silently reject bots — pretend success
         return { ok: true, data: { bot: true } };
     }
 
-    const payload = {
-        fullName:            formData.fullName,
-        companyName:         formData.companyName || '—',
-        email:               formData.email,
-        phone:               formData.phone || '—',
-        serviceInterestedIn: formData.serviceInterestedIn,
-        businessChallenge:   formData.businessChallenge,
-        submittedAt:         new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) + ' WAT',
-        pageUrl:             window.location.href,
-    };
+    const { firstname, lastname } = splitName(formData.fullName);
 
-    // ── Path A: EmailJS ────────────────────────────────────────────────────────
-    if (SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY) {
+    // ── Path A: HubSpot Forms Submissions API ─────────────────────────────────
+    if (HUBSPOT_PORTAL_ID && HUBSPOT_FORM_GUID) {
         try {
-            await loadEmailJS();
-            window.emailjs.init({ publicKey: PUBLIC_KEY });
+            const hubspotPayload = {
+                fields: [
+                    { name: 'firstname',             value: firstname },
+                    { name: 'lastname',              value: lastname },
+                    { name: 'email',                 value: formData.email },
+                    { name: 'company',               value: formData.companyName || '' },
+                    { name: 'phone',                 value: formData.phone || '' },
+                    { name: 'service_interested_in', value: formData.serviceInterestedIn || '' },
+                    { name: 'business_challenge',    value: formData.businessChallenge || '' },
+                ],
+                context: {
+                    pageUri: window.location.href,
+                    pageName: document.title
+                }
+            };
 
-            const response = await window.emailjs.send(SERVICE_ID, TEMPLATE_ID, payload);
+            const response = await fetch(`${HUBSPOT_API_BASE}/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${HUBSPOT_FORM_GUID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(hubspotPayload),
+            });
 
-            if (response.status === 200) {
-                return { ok: true, data: response };
-            } else {
-                return { ok: false, error: `EmailJS error: ${response.text}` };
+            const rawText = await response.text();
+            console.log('[DEBUG] HubSpot status:', response.status);
+            console.log('[DEBUG] HubSpot raw:', rawText);
+
+            if (response.ok) {
+                console.log('[Revamp Lead Capture] HubSpot form submitted successfully.');
+                
+                // Fire Resend email notification in the background (non-blocking)
+                _sendEmailNotification(formData, firstname, lastname);
+
+                return { ok: true, data: rawText };
             }
+
+            console.error('[Revamp Lead Capture] HubSpot error:', rawText);
+            return { ok: false, error: `HubSpot API error (${response.status}): ${rawText}` };
         } catch (err) {
-            console.error('[Revamp Lead Capture] EmailJS failed:', err);
-            // Fall through to webhook if available
-            if (!WEBHOOK_ENDPOINT) {
-                return { ok: false, error: err.message || 'Failed to send email.' };
-            }
+            console.error('[Revamp Lead Capture] HubSpot fetch failed:', err);
+            return { ok: false, error: err.message || 'Network error — please try again.' };
         }
     }
 
-    // ── Path B: Webhook (Zapier / Make / Airtable) ─────────────────────────────
+    /*
+    // ── Path C: Webhook (Zapier / Make / Airtable) ─────────────────────────────
     if (WEBHOOK_ENDPOINT) {
+        const emailPayload = _buildEmailPayload(formData, firstname, lastname);
         try {
             const response = await fetch(WEBHOOK_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(emailPayload),
             });
 
             if (!response.ok) {
@@ -125,10 +161,89 @@ export async function submitLeadForm(formData) {
             return { ok: false, error: err.message || 'Network error' };
         }
     }
+    */
 
     // ── Dev mode: no credentials configured ───────────────────────────────────
-    console.log('[Revamp Lead Capture] No EmailJS or webhook configured.');
-    console.log('[Revamp Lead Capture] Payload:', payload);
+    console.log('[Revamp Lead Capture] No HubSpot, EmailJS, or webhook configured.');
+    console.log('[Revamp Lead Capture] Payload:', {
+        firstname, lastname,
+        email: formData.email,
+        company: formData.companyName,
+        phone: formData.phone,
+        service_interested_in: formData.serviceInterestedIn,
+        business_challenge: formData.businessChallenge,
+    });
     await new Promise((resolve) => setTimeout(resolve, 800));
     return { ok: true, data: { simulated: true } };
+}
+
+// ── Private Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Builds the payload for email / webhook notification.
+ */
+function _buildEmailPayload(formData, firstname, lastname) {
+    return {
+        fullName:            formData.fullName,
+        firstname:           firstname,
+        lastname:            lastname,
+        companyName:         formData.companyName || '—',
+        email:               formData.email,
+        phone:               formData.phone || '—',
+        serviceInterestedIn: formData.serviceInterestedIn,
+        businessChallenge:   formData.businessChallenge,
+        submittedAt:         new Date().toLocaleString('en-GB', { timeZone: 'Africa/Lagos' }) + ' WAT',
+        pageUrl:             window.location.href,
+    };
+}
+
+
+/**
+ * Fires Resend email notifications (via Vercel Serverless Function) 
+ * in the background (non-blocking).
+ * Used alongside HubSpot so you still get email alerts.
+ */
+async function _sendEmailNotification(formData, firstname, lastname) {
+    const payload = _buildEmailPayload(formData, firstname, lastname);
+
+    try {
+        const promises = [];
+
+        // Email A: Internal Alert
+        promises.push(
+            fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'internal', payload })
+            }).catch(err => {
+                console.warn('[Revamp Lead Capture] Internal email notification failed:', err);
+            })
+        );
+
+        // Email B: Lead Confirmation
+        promises.push(
+            fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'confirmation', payload })
+            }).catch(err => {
+                console.warn('[Revamp Lead Capture] Lead confirmation email failed:', err);
+            })
+        );
+
+        // Fire and forget (don't block waiting for emails to finish)
+        Promise.all(promises).then(async (responses) => {
+            for (const res of responses) {
+                if (res && !res.ok) {
+                    const text = await res.text().catch(() => '');
+                    console.warn(`[Revamp Lead Capture] Email API returned ${res.status}:`, text);
+                }
+            }
+            console.log('[Revamp Lead Capture] All Resend email notifications processed.');
+        });
+
+    } catch (err) {
+        // Non-critical — HubSpot already captured the lead
+        console.warn('[Revamp Lead Capture] Error triggering email notifications:', err);
+    }
 }

@@ -9,22 +9,23 @@ import trackEvent from '../utils/trackEvent';
 
 // ── Contact info ───────────────────────────────────────────────────────────────
 const contactInfo = [
-    { icon: Phone,    label: 'Phone',    value: '+234 803 4653 210',               href: 'tel:+2348034653210' },
+    { icon: Phone,    label: 'Phone',    value: '+234 802 2221 589',               href: 'tel:+234802221589' },
     { icon: Mail,     label: 'Email',    value: 'adekunle.olusanya@yahoo.com',     href: 'mailto:adekunle.olusanya@yahoo.com' },
     { icon: Linkedin, label: 'LinkedIn', value: 'Revamp Consulting LLC',           href: 'https://www.linkedin.com/company/revamp-consulting-llc' },
     { icon: MapPin,   label: 'Location', value: 'Lagos, Nigeria',                 href: null },
 ];
 
 const SERVICE_OPTIONS = [
-    { value: '',                            label: 'Select a service…' },
-    { value: 'Strategy & Transformation',  label: 'Strategy & Transformation' },
-    { value: 'Financial Planning & Analysis', label: 'Financial Planning & Analysis' },
-    { value: 'Technology & Digital Strategy', label: 'Technology & Digital Strategy' },
-    { value: 'Retained Advisory',          label: 'Retained Advisory' },
-    { value: 'Project-Based Consulting',   label: 'Project-Based Consulting' },
-    { value: 'Fractional C-Suite',         label: 'Fractional C-Suite' },
-    { value: 'Executive Workshops',        label: 'Executive Workshops' },
-    { value: 'Other',                      label: 'Other' },
+    { value: '',                                      label: 'Select a service…' },
+    { value: 'Strategy & Transformation',             label: 'Strategy & Transformation' },
+    { value: 'Financial Planning & Analysis',         label: 'Financial Planning & Analysis' },
+    { value: 'Telecoms & ICT Advisory',               label: 'Telecoms & ICT Advisory' },
+    { value: 'Digital Transformation',                label: 'Digital Transformation' },
+    { value: 'Market Entry & Expansion Strategy',     label: 'Market Entry & Expansion Strategy' },
+    { value: 'Regulatory & Compliance Advisory',      label: 'Regulatory & Compliance Advisory' },
+    { value: 'Operational Excellence & Performance',  label: 'Operational Excellence & Performance' },
+    { value: 'Business Development & Growth',         label: 'Business Development & Growth' },
+    { value: 'Other',                                 label: 'Other' },
 ];
 
 // ── Shared classes ─────────────────────────────────────────────────────────────
@@ -307,7 +308,7 @@ export default function ConsultationSection() {
                                         <label htmlFor="phone" className={labelClass}>Phone Number</label>
                                         <input id="phone" name="phone" type="tel"
                                             value={formData.phone} onChange={handleChange}
-                                            placeholder="+234 803 4653 210" className={inputClass(false)} />
+                                            placeholder="+234 800 0000 000" className={inputClass(false)} />
                                     </div>
                                 </div>
 
