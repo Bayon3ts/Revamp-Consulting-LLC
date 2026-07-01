@@ -3,9 +3,8 @@
  *
  * Multi-channel lead capture:
  *   1. HubSpot CRM (v3 Contacts API) — primary
- *   2. EmailJS — secondary notification channel
- *   3. Webhook (Zapier / Make / Airtable) — fallback
- *   4. Dev-log mode — when no credentials are configured
+ *   2. Webhook (Zapier / Make / Airtable) — fallback (currently disabled, see commented block below)
+ *   3. Dev-log mode — when no credentials are configured
  *
  * ── HubSpot Setup ─────────────────────────────────────────────────────────────
  * The form uses the public HubSpot Forms Submissions API.
@@ -81,8 +80,6 @@ function splitName(fullName) {
  * @returns {Promise<{ ok: boolean, data?: any, error?: string }>}
  */
 export async function submitLeadForm(formData) {
-    console.log('[DEBUG] Portal:', HUBSPOT_PORTAL_ID, 'Form:', HUBSPOT_FORM_GUID);
-
     // ── Honeypot check ─────────────────────────────────────────────────────────
     if (formData._hp) {
         // Silently reject bots — pretend success
@@ -119,8 +116,6 @@ export async function submitLeadForm(formData) {
             });
 
             const rawText = await response.text();
-            console.log('[DEBUG] HubSpot status:', response.status);
-            console.log('[DEBUG] HubSpot raw:', rawText);
 
             if (response.ok) {
                 console.log('[Revamp Lead Capture] HubSpot form submitted successfully.');
@@ -164,7 +159,7 @@ export async function submitLeadForm(formData) {
     */
 
     // ── Dev mode: no credentials configured ───────────────────────────────────
-    console.log('[Revamp Lead Capture] No HubSpot, EmailJS, or webhook configured.');
+    console.log('[Revamp Lead Capture] No HubSpot or webhook configured.');
     console.log('[Revamp Lead Capture] Payload:', {
         firstname, lastname,
         email: formData.email,
