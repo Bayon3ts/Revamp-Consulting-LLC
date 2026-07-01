@@ -74,12 +74,16 @@ function splitName(fullName) {
  */
 
 /**
- * Submits a lead form to HubSpot (primary), EmailJS (secondary), or a webhook (fallback).
+ * Submits a lead form to HubSpot (primary) or a webhook (fallback, currently disabled).
  *
  * @param {LeadPayload} formData
  * @returns {Promise<{ ok: boolean, data?: any, error?: string }>}
  */
 export async function submitLeadForm(formData) {
+    if (!HUBSPOT_PORTAL_ID || !HUBSPOT_FORM_GUID) {
+        console.warn('[Revamp Lead Capture] HubSpot is not configured — VITE_HUBSPOT_PORTAL_ID and/or VITE_HUBSPOT_FORM_GUID are missing. Leads will not be captured in HubSpot until these are set.');
+    }
+
     // ── Honeypot check ─────────────────────────────────────────────────────────
     if (formData._hp) {
         // Silently reject bots — pretend success
