@@ -93,6 +93,9 @@ export async function submitLeadForm(formData) {
     const { firstname, lastname } = splitName(formData.fullName);
 
     // ── Path A: HubSpot Forms Submissions API ─────────────────────────────────
+    let hubspotSuccess = false;
+    let rawText = '';
+
     if (HUBSPOT_PORTAL_ID && HUBSPOT_FORM_GUID) {
         try {
             const hubspotPayload = {
@@ -119,61 +122,28 @@ export async function submitLeadForm(formData) {
                 body: JSON.stringify(hubspotPayload),
             });
 
-            const rawText = await response.text();
+            rawText = await response.text();
 
             if (response.ok) {
                 console.log('[Revamp Lead Capture] HubSpot form submitted successfully.');
-                
-                // Fire Resend email notification in the background (non-blocking)
-                _sendEmailNotification(formData, firstname, lastname);
-
-                return { ok: true, data: rawText };
+                hubspotSuccess = true;
+            } else {
+                console.error('[Revamp Lead Capture] HubSpot error:', rawText);
+                return { ok: false, error: `HubSpot API error (${response.status}): ${rawText}` };
             }
-
-            console.error('[Revamp Lead Capture] HubSpot error:', rawText);
-            return { ok: false, error: `HubSpot API error (${response.status}): ${rawText}` };
         } catch (err) {
             console.error('[Revamp Lead Capture] HubSpot fetch failed:', err);
             return { ok: false, error: err.message || 'Network error — please try again.' };
         }
+    } else {
+        console.log('[Revamp Lead Capture] No HubSpot configured. Simulating CRM success.');
+        await new Promise((resolve) => setTimeout(resolve, 800)); // simulate network delay
     }
 
-    /*
-    // ── Path C: Webhook (Zapier / Make / Airtable) ─────────────────────────────
-    if (WEBHOOK_ENDPOINT) {
-        const emailPayload = _buildEmailPayload(formData, firstname, lastname);
-        try {
-            const response = await fetch(WEBHOOK_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(emailPayload),
-            });
+    // Fire Resend email notification in the background (non-blocking)
+    _sendEmailNotification(formData, firstname, lastname);
 
-            if (!response.ok) {
-                const text = await response.text().catch(() => '');
-                return { ok: false, error: `Webhook error ${response.status}: ${text}` };
-            }
-
-            const data = await response.json().catch(() => ({}));
-            return { ok: true, data };
-        } catch (err) {
-            return { ok: false, error: err.message || 'Network error' };
-        }
-    }
-    */
-
-    // ── Dev mode: no credentials configured ───────────────────────────────────
-    console.log('[Revamp Lead Capture] No HubSpot or webhook configured.');
-    console.log('[Revamp Lead Capture] Payload:', {
-        firstname, lastname,
-        email: formData.email,
-        company: formData.companyName,
-        phone: formData.phone,
-        service_interested_in: formData.serviceInterestedIn,
-        business_challenge: formData.businessChallenge,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return { ok: true, data: { simulated: true } };
+    return { ok: true, data: hubspotSuccess ? rawText : { simulated: true } };
 }
 
 // ── Private Helpers ────────────────────────────────────────────────────────────

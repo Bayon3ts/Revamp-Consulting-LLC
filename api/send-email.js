@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     if (type === 'internal') {
       emailData = {
-        from: 'Revamp Consulting <notifications@revampconsulting.ng>', // TODO: must match a domain verified in Resend dashboard
+        from: 'Revamp Consulting <notifications@revampconsult.com>',
         to: 'kunleolusanya2020@gmail.com',
         subject: `New Lead: ${payload.fullName} — ${payload.serviceInterestedIn}`,
         text: `New consultation request received.
@@ -34,7 +34,7 @@ Page: ${payload.pageUrl}`
       };
     } else if (type === 'confirmation') {
       emailData = {
-        from: 'Revamp Consulting <notifications@revampconsulting.ng>', // TODO: must match a domain verified in Resend dashboard
+        from: 'Revamp Consulting <notifications@revampconsult.com>',
         to: payload.email,
         subject: 'Thank you for reaching out to Revamp Consulting',
         text: `Hi ${payload.firstname},

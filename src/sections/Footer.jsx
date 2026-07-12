@@ -70,7 +70,7 @@ export default function Footer() {
                                 <Linkedin size={15} className="text-[#C8A96E]" />
                             </a>
                             <a
-                                href="mailto:info@revampconsulting.ng"
+                                href="mailto:info@revampconsult.com"
                                 className="w-9 h-9 rounded-sm bg-white/5 border border-white/10 flex items-center justify-center
                                            hover:bg-[#C8A96E]/10 hover:border-[#C8A96E]/40 transition-all duration-200"
                                 aria-label="Email Revamp Consulting"
